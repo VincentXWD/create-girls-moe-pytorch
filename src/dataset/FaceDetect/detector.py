@@ -6,7 +6,7 @@ import logging
 import re
 import utils
 
-__DEBUG__ = True
+__DEBUG__ = False
 DETECTOR_MODEL_PATH = '../../../resource/animeface_model/lbpcascade_animeface.xml'
 ID_PATTERN = re.compile('(\d+)_\d+.jpg')
 IDX_PATTERN = re.compile('\d+_(\d+).jpg')
@@ -65,8 +65,8 @@ def batchmark(img_paths: list, output_dir: str, output_list_path: str) -> None:
         continue
       for roi in ROI:
         avatar_path = os.path.join(output_dir, id + '_' + id_x + '.jpg')
-        fout.write('{} {} {} {} {} {} {}\n'.format(id, id_x, roi[0], roi[1], roi[2], roi[3], avatar_path))
-        print('{} {} {} {} {} {} {}'.format(id, id_x, roi[0], roi[1], roi[2], roi[3], avatar_path))
+        fout.write('{} {} {}\n'.format(id, id_x, avatar_path))
+        print('{} {} {}'.format(id, id_x, avatar_path))
         cv2.imwrite(avatar_path, roi[-1])
 
 
@@ -102,5 +102,5 @@ if __name__ == '__main__':
   if __DEBUG__:
     face_detect('../../../resource/getchu_raw_img/715989_13.jpg')
 
-  # img_paths = utils.get_image_path(raw_input_dir)
-  # batchmark(img_paths, output_dir, output_list_path)
+  img_paths = utils.get_image_path(raw_input_dir)
+  batchmark(img_paths, output_dir, output_list_path)

@@ -13,6 +13,7 @@ def remove_below_specified_resolution(raw_img_dir: str, resolution: tuple) -> No
   """
   img_paths = utils.get_image_path(raw_img_dir)
   for path in img_paths:
+    print(path)
     size = Image.open(path).size
     if size[0] < resolution[0] or size[0] < resolution[1]:
       os.remove(path)
@@ -29,7 +30,7 @@ if __name__ == '__main__':
                       default="../../../resource/getchu_avatar/",
                       help='''''')
   parser.add_argument("--resolution", type=tuple,
-                      default=(90, 90),
+                      default=(42, 42),
                       help='''''')
   FLAGS, unparsed = parser.parse_known_args()
   raw_img_dir = FLAGS.raw_img_dir
