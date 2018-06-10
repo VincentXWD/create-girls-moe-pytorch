@@ -100,7 +100,7 @@ if __name__ == '__main__':
     os.mkdir(output_dir)
 
   if __DEBUG__:
-    face_detect('../../../resource/getchu_raw_img/715989_13.jpg')
+    face_detect('../../../resource/getchu_raw_img/880916_13.jpg')
 
-  img_paths = utils.get_image_path(raw_input_dir)
-  batchmark(img_paths, output_dir, output_list_path)
+  # img_paths = utils.get_image_path(raw_input_dir)
+  # batchmark(img_paths, output_dir, output_list_path)

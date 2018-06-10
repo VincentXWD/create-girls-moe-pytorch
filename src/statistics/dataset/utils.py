@@ -16,6 +16,7 @@ def get_image_path(raw_input_dir: str) -> list:
 
 def read_list(list_path: str) -> list:
   """
+
   :param list_path:
   :return:
   """
