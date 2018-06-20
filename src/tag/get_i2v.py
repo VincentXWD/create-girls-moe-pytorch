@@ -1,3 +1,4 @@
+__author__ = 'Wendong Xu'
 import i2v
 from PIL import Image
 import argparse
@@ -18,7 +19,7 @@ def get_main_tag(img: Image) -> np.array:
   """
 
   :param img: PIL.Image
-  :return: feature list
+  :return: tag list
   """
   illust2vec_tag = i2v.make_i2v_with_chainer(config.tag_model_path, config.tag_list_json)
 
@@ -26,7 +27,7 @@ def get_main_tag(img: Image) -> np.array:
 
   feat = []
   for each in result:
-    if each[0] in utils.feature_map.keys():
+    if each[0] in utils.tag_map.keys():
       feat.append(each[0])
   return feat
 

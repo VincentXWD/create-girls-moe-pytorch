@@ -1,3 +1,4 @@
+__author__ = 'Wendong Xu'
 import cv2
 import os
 import math

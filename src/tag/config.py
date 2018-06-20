@@ -1,3 +1,4 @@
+__author__ = 'Wendong Xu'
 
 illust2vec_tag_proto = '../../resource/i2v_model/illust2vec_tag.prototxt'
 tag_model_path = '../../resource/i2v_model/illust2vec_tag_ver200.caffemodel'
