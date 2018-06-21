@@ -1,6 +1,9 @@
 ## Create Girls Moe
 This repo contains a PyTorch from-scratch implementation of the paper [Towards the Automatic Anime Characters Creation with Generative Adversarial Networks](https://arxiv.org/pdf/1708.05509).
-
+### What The Paper Did
+Generating 二次元(にじげん) MOEst avatars...
+<center><img src="./img/paper_samples.png"></center>
+<center>generated avatars from the paper</center>
 ### Environment
 + Python 3.6
 + Python-OpenCV 3.4.0
