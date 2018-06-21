@@ -119,7 +119,7 @@ class SRGAN():
     # Set Criterion
     # TODO: fix the criterions
     self.label_criterion = nn.BCEWithLogitsLoss().to(device)
-    self.tag_criterion = nn.BCEWithLogitsLoss().to(device)
+    self.tag_criterion = nn.MultiLabelSoftMarginLoss().to(device)
 
 
 
