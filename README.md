@@ -1,9 +1,11 @@
 ## Create Girls Moe
 This repo contains a PyTorch from-scratch implementation of the paper [Towards the Automatic Anime Characters Creation with Generative Adversarial Networks](https://arxiv.org/pdf/1708.05509).
+
 ### What The Paper Did
 Generating 二次元(にじげん) MOEst avatars...
 <center><img src="./img/paper_samples.png"></center>
 <center>generated avatars from the paper</center>
+
 ### Environment
 + Python 3.6
 + Python-OpenCV 3.4.0
@@ -21,7 +23,7 @@ I want to call it a DRAGAN-like SRGAN structure because I use the gradient penal
 The SRResNet(modified as the paper described) are like this:
 <img src="./img/network_structure.png">
 
-##### I have some modifications in this structure:
+**I have some modifications in this structure:**
 
 1. I weighted label's loss and tag's loss with half of λ<sub>adv</sub> beacause the loss described in the paper was so hard-core for me. (More details please refer in *src/model/gan.py*)
 
