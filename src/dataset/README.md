@@ -5,7 +5,7 @@ Main scripts for building the training dataset.
 Parse all urls from *erogamescape_sql*''s result file.
 You can get the *erogamescape_sql* file using [/scripts/get_sql_results.sh](../../scripts/get_sql_results.sh)
 
-#### [*Spider/getchu_get_raw_image.py*](./Spider/getchu_get_raw_image.py)
+#### [*Spider/getchu_get_raw_images.py*](./Spider/getchu_get_raw_images.py)
 Download all the images and messages from getchu.com.
 
 #### [*Spider/streamline_rough.py*](./Spider/streamline_rough.py)
