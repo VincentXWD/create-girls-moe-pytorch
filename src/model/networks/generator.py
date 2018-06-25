@@ -58,7 +58,7 @@ class Generator(nn.Module):
     self.bn_2 = nn.BatchNorm2d(64)
     self.relu_2 = nn.PReLU()
     self.subpixel_layer = self.make_subpixel_layer(3) # outn=64
-    self.conv_1 = nn.Conv2d(64, 3, kernel_size=9, stride=1, padding=4, bias=False)
+    self.conv_1 = nn.Conv2d(64, 3, kernel_size=9, stride=1, padding=4, bias=True)
     self.tanh_1 = nn.Tanh()
 
   def forward(self, tensor):
