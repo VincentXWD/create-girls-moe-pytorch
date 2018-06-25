@@ -35,7 +35,7 @@ The SRResNet(modified as the paper described) are like this:
 ### Data Preparing
 0. Cause I built an extremely clean dataset for this task. I'm glad to share my data-Preparing method here.
 
-1. Crawled the images from the website as the paper proposed. Read the *readme* and *codes* in [*src/dataset/Spider/*](./src/dataset/Spider/*) to get more information.
+1. Crawled the images from the website as the paper proposed. Read the *readme* and *codes* in [*src/dataset/Spider/*](./src/dataset/Spider/) to get more information.
 
 2. I used the [lbpcascade_animeface](https://github.com/nagadomi/lbpcascade_animeface) model for face detecting. source codes are in [*src/dataset/FaceDetect/*](./src/dataset/FaceDetect/)
 
