@@ -22,7 +22,7 @@ import logging
 import time
 
 
-__DEBUG__ = False
+__DEBUG__ = True
 
 # have GPU or not.
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -35,7 +35,7 @@ parser.add_argument('--learning_rate', type=float, default=0.0002, help='learnin
 parser.add_argument('--beta_1', type=float, default=0.5, help='adam optimizer\'s paramenter')
 parser.add_argument('--batch_size', type=int, default=64, help='training batch size for each epoch')
 parser.add_argument('--lr_update_cycle', type=int, default=50000, help='cycle of updating learning rate')
-parser.add_argument('--max_epoch', type=int, default=5, help='training epoch')
+parser.add_argument('--max_epoch', type=int, default=500, help='training epoch')
 parser.add_argument('--num_workers', type=int, default=4, help='number of data loader processors')
 parser.add_argument('--noise_size', type=int, default=128, help='number of G\'s input')
 parser.add_argument('--lambda_adv', type=float, default=20.0, help='adv\'s lambda')
@@ -124,6 +124,11 @@ def fake_generator():
   return noise, tag
 
 
+def read_newest_model(model_dump_path):
+  for rt, dirs, files in os.walk(model_dump_path):
+    return files
+
+
 class SRGAN():
   def __init__(self):
     logger.info('Set Data Loader')
@@ -133,24 +138,45 @@ class SRGAN():
                                                    batch_size=batch_size,
                                                    shuffle=True,
                                                    num_workers=num_workers, drop_last=True)
-    logger.info('Set Generator and Discriminator')
-    self.G = Generator().to(device)
-    self.D = Discriminator().to(device)
-    logger.info('Initialize Weights')
-    self.G.apply(initital_network_weights).to(device)
-    self.D.apply(initital_network_weights).to(device)
-    logger.info('Set Optimizers')
-    self.optimizer_G = torch.optim.Adam(self.G.parameters(), lr=learning_rate, betas=(beta_1, 0.999))
-    self.optimizer_D = torch.optim.Adam(self.D.parameters(), lr=learning_rate, betas=(beta_1, 0.999))
+    checkpoint, checkpoint_name = self.load_checkpoint(model_dump_path)
+    if checkpoint == None:
+      logger.info('Don\'t have pre-trained model. Ignore loading model process.')
+      logger.info('Set Generator and Discriminator')
+      self.G = Generator().to(device)
+      self.D = Discriminator().to(device)
+      logger.info('Initialize Weights')
+      self.G.apply(initital_network_weights).to(device)
+      self.D.apply(initital_network_weights).to(device)
+      logger.info('Set Optimizers')
+      self.optimizer_G = torch.optim.Adam(self.G.parameters(), lr=learning_rate, betas=(beta_1, 0.999))
+      self.optimizer_D = torch.optim.Adam(self.D.parameters(), lr=learning_rate, betas=(beta_1, 0.999))
+    else:
+      logger.info('Load Generator and Discriminator')
+      self.G = Generator().to(device)
+      self.D = Discriminator().to(device)
+      logger.info('Load Pre-Trained Weights From Checkpoint'.format(checkpoint_name))
+      self.G.load_state_dict(checkpoint['G'])
+      self.D.load_state_dict(checkpoint['D'])
+      logger.info('Load Optimizers')
+      self.optimizer_G = torch.optim.Adam(self.G.parameters(), lr=learning_rate, betas=(beta_1, 0.999))
+      self.optimizer_D = torch.optim.Adam(self.D.parameters(), lr=learning_rate, betas=(beta_1, 0.999))
+      self.optimizer_G.load_state_dict(checkpoint['optimizer_G'])
+      self.optimizer_D.load_state_dict(checkpoint['optimizer_D'])
 
     logger.info('Set Criterion')
     self.label_criterion = nn.BCEWithLogitsLoss().to(device)
     self.tag_criterion = nn.MultiLabelSoftMarginLoss().to(device)
 
 
-  def load_checkpoint(self, model_path):
-    # TODO:
-    pass
+  def load_checkpoint(self, model_dir):
+    models_path = read_newest_model(model_dir)
+    if len(models_path) == 0:
+      return None, None
+    models_path.sort()
+    new_model_path = os.path.join(model_dump_path, models_path[-1])
+    checkpoint = torch.load(new_model_path)
+    return checkpoint, new_model_path
+
 
   def train(self):
     iteration = -1
@@ -169,7 +195,6 @@ class SRGAN():
       msg = {}
       adjust_learning_rate(self.optimizer_G, iteration)
       adjust_learning_rate(self.optimizer_D, iteration)
-
       for i, (avatar_tag, avatar_img) in enumerate(self.data_loader):
         iteration += 1
         if verbose:
@@ -280,4 +305,3 @@ def main():
 
 if __name__ == '__main__':
   main()
-
