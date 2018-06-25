@@ -12,3 +12,4 @@ wget https://github.com/rezoo/illustration2vec/releases/download/v2.0.0/illust2v
 gunzip tag_list.json.gz
 
 echo "Done."
+echo "I strongly recommand you move them to the directory named /resource/"

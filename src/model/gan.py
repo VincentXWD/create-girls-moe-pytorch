@@ -18,13 +18,14 @@ import utils
 import random
 import os
 import torchvision.utils as vutils
+import logging
+import time
 
 
 __DEBUG__ = False
 
 # have GPU or not.
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-print('Currently use {} for calculating'.format(device))
 
 # Training settings
 parser = argparse.ArgumentParser(description="PyTorch SRResNet-GAN")
@@ -43,6 +44,7 @@ parser.add_argument('--model_dump_path', type=str, default='../../resource/gan_m
 parser.add_argument('--verbose', type=bool, default=True, help='output verbose messages')
 parser.add_argument('--tmp_path', type=str, default='../../resource/training_temp/', help='path of the intermediate files during training')
 parser.add_argument('--verbose_T', type=int, default=100, help='steps for saving intermediate file')
+parser.add_argument('--logfile', type=str, default='../../resource/training.log', help='logging path')
 
 
 ##########################################
@@ -63,13 +65,31 @@ model_dump_path = opt.model_dump_path
 verbose = opt.verbose
 tmp_path= opt.tmp_path
 verbose_T = opt.verbose_T
+logfile = opt.logfile
 
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+rq = time.strftime('%Y%m%d%H%M', time.localtime(time.time()))
+log = logging.FileHandler(logfile, mode='w')
+log.setLevel(logging.INFO)
+formatter = logging.Formatter("%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s")
+log.setFormatter(formatter)
+
+plog = logging.StreamHandler()
+plog.setLevel(logging.INFO)
+plog.setFormatter(formatter)
+
+logger.addHandler(log)
+logger.addHandler(plog)
+
+logger.info('Currently use {} for calculating'.format(device))
 if __DEBUG__:
   batch_size = 10
   num_workers = 4
 #
 #
 ##########################################
+
 
 
 def initital_network_weights(element):
@@ -106,24 +126,24 @@ def fake_generator():
 
 class SRGAN():
   def __init__(self):
-    print('Set Data Loader')
+    logger.info('Set Data Loader')
     self.dataset = AnimeFaceDataset(avatar_tag_dat_path=avatar_tag_dat_path,
-                                        transform=transforms.Compose([ToTensor()]))
+                                    transform=transforms.Compose([ToTensor()]))
     self.data_loader = torch.utils.data.DataLoader(self.dataset,
                                                    batch_size=batch_size,
                                                    shuffle=True,
                                                    num_workers=num_workers, drop_last=True)
-    print('Set Generator and Discriminator')
+    logger.info('Set Generator and Discriminator')
     self.G = Generator().to(device)
     self.D = Discriminator().to(device)
-    print('Initialize Weights')
+    logger.info('Initialize Weights')
     self.G.apply(initital_network_weights).to(device)
     self.D.apply(initital_network_weights).to(device)
-    print('Set Optimizers')
+    logger.info('Set Optimizers')
     self.optimizer_G = torch.optim.Adam(self.G.parameters(), lr=learning_rate, betas=(beta_1, 0.999))
     self.optimizer_D = torch.optim.Adam(self.D.parameters(), lr=learning_rate, betas=(beta_1, 0.999))
 
-    print('Set Criterion')
+    logger.info('Set Criterion')
     self.label_criterion = nn.BCEWithLogitsLoss().to(device)
     self.tag_criterion = nn.MultiLabelSoftMarginLoss().to(device)
 
@@ -136,8 +156,16 @@ class SRGAN():
     iteration = -1
     label = Variable(torch.FloatTensor(batch_size, 1.0)).to(device)
     for epoch in range(max_epoch):
-      if __DEBUG__:
-        print(iteration)
+      # dump checkpoint
+      torch.save({
+        'epoch': epoch + 1,
+        'D': self.D.state_dict(),
+        'G': self.G.state_dict(),
+        'optimizer_D': self.optimizer_D.state_dict(),
+        'optimizer_G': self.optimizer_G.state_dict(),
+      }, '{}/checkpoint_{}.tar'.format(model_dump_path, str(epoch).zfill(4)))
+      logger.info('Checkpoint saved in: {}'.format('{}/checkpoint_{}.tar'.format(model_dump_path, str(epoch).zfill(4))))
+
       msg = {}
       adjust_learning_rate(self.optimizer_G, iteration)
       adjust_learning_rate(self.optimizer_D, iteration)
@@ -226,9 +254,9 @@ class SRGAN():
 
         if verbose:
           if iteration % verbose_T == 0:
-            print('------------------------------------------')
+            logger.info('------------------------------------------')
             for key in msg.keys():
-              print('{} : {}'.format(key, msg[key]))
+              logger.info('{} : {}'.format(key, msg[key]))
         # save intermediate file
         if iteration % verbose_T == 0:
           vutils.save_image(avatar_img.data.view(batch_size, 3, avatar_img.size(2), avatar_img.size(3)),
@@ -238,16 +266,7 @@ class SRGAN():
           fake_img = self.G(fake_feat)
           vutils.save_image(fake_img.data.view(batch_size, 3, avatar_img.size(2), avatar_img.size(3)),
                             os.path.join(tmp_path, 'fake_image_{}.png'.format(str(iteration).zfill(8))))
-          print('Saved intermediate file in {}'.format(os.path.join(tmp_path, 'fake_image_{}.png'.format(str(iteration).zfill(8)))))
-
-      # dump checkpoint
-      torch.save({
-        'epoch': epoch + 1,
-        'D': self.D.state_dict(),
-        'G': self.G.state_dict(),
-        'optimizer_D': self.optimizer_D.state_dict(),
-        'optimizer_G': self.optimizer_G.state_dict(),
-      }, '{}/checkpoint_{}.tar'.format(model_dump_path, str(epoch).zfill(4)))
+          logger.info('Saved intermediate file in {}'.format(os.path.join(tmp_path, 'fake_image_{}.png'.format(str(iteration).zfill(8)))))
 
 
 def main():
