@@ -150,6 +150,7 @@ class SRGAN():
       logger.info('Set Optimizers')
       self.optimizer_G = torch.optim.Adam(self.G.parameters(), lr=learning_rate, betas=(beta_1, 0.999))
       self.optimizer_D = torch.optim.Adam(self.D.parameters(), lr=learning_rate, betas=(beta_1, 0.999))
+      self.epoch = 0
     else:
       logger.info('Load Generator and Discriminator')
       self.G = Generator().to(device)
@@ -162,7 +163,7 @@ class SRGAN():
       self.optimizer_D = torch.optim.Adam(self.D.parameters(), lr=learning_rate, betas=(beta_1, 0.999))
       self.optimizer_G.load_state_dict(checkpoint['optimizer_G'])
       self.optimizer_D.load_state_dict(checkpoint['optimizer_D'])
-
+      self.epoch = checkpoint['epoch']
     logger.info('Set Criterion')
     self.label_criterion = nn.BCEWithLogitsLoss().to(device)
     self.tag_criterion = nn.MultiLabelSoftMarginLoss().to(device)
@@ -181,16 +182,17 @@ class SRGAN():
   def train(self):
     iteration = -1
     label = Variable(torch.FloatTensor(batch_size, 1.0)).to(device)
-    for epoch in range(max_epoch):
+    logging.info('Current epoch: {}. Max epoch: {}.'.format(self.epoch, max_epoch))
+    while self.epoch <= max_epoch:
       # dump checkpoint
       torch.save({
-        'epoch': epoch + 1,
+        'epoch': self.epoch,
         'D': self.D.state_dict(),
         'G': self.G.state_dict(),
         'optimizer_D': self.optimizer_D.state_dict(),
         'optimizer_G': self.optimizer_G.state_dict(),
-      }, '{}/checkpoint_{}.tar'.format(model_dump_path, str(epoch).zfill(4)))
-      logger.info('Checkpoint saved in: {}'.format('{}/checkpoint_{}.tar'.format(model_dump_path, str(epoch).zfill(4))))
+      }, '{}/checkpoint_{}.tar'.format(model_dump_path, str(self.epoch).zfill(4)))
+      logger.info('Checkpoint saved in: {}'.format('{}/checkpoint_{}.tar'.format(model_dump_path, str(self.epoch).zfill(4))))
 
       msg = {}
       adjust_learning_rate(self.optimizer_G, iteration)
@@ -199,7 +201,7 @@ class SRGAN():
         iteration += 1
         if verbose:
           if iteration % verbose_T == 0:
-            msg['epoch'] = int(epoch)
+            msg['epoch'] = int(self.epoch)
             msg['step'] = int(i)
             msg['iteration'] = iteration
         avatar_img = Variable(avatar_img).to(device)
@@ -292,6 +294,7 @@ class SRGAN():
           vutils.save_image(fake_img.data.view(batch_size, 3, avatar_img.size(2), avatar_img.size(3)),
                             os.path.join(tmp_path, 'fake_image_{}.png'.format(str(iteration).zfill(8))))
           logger.info('Saved intermediate file in {}'.format(os.path.join(tmp_path, 'fake_image_{}.png'.format(str(iteration).zfill(8)))))
+      self.epoch += 1
 
 
 def main():
