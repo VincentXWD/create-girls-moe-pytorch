@@ -22,7 +22,7 @@ import logging
 import time
 
 
-__DEBUG__ = True
+__DEBUG__ = False
 
 # have GPU or not.
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -91,7 +91,6 @@ if __DEBUG__:
 ##########################################
 
 
-
 def initital_network_weights(element):
   if hasattr(element, 'weight'):
     element.weight.data.normal_(.0, .02)
@@ -100,33 +99,6 @@ def initital_network_weights(element):
 def adjust_learning_rate(optimizer, iteration):
   lr = learning_rate * (0.1 ** (iteration // lr_update_cycle))
   return lr
-
-
-def fake_tag():
-  tag = [0 for _ in range(len(utils.tag))]
-  hair_id = random.randint(0, len(utils.hair)-1)
-  eye_id = random.randint(0 ,len(utils.eyes)-1)
-  tag[utils.tag_map[utils.hair[hair_id]]] = 1
-  tag[utils.tag_map[utils.eyes[eye_id]]] = 1
-  for feat in utils.others:
-    choice = random.randint(1, 4)
-    if choice == 4:
-      tag[utils.tag_map[feat]] = 1
-  tag = Variable(torch.FloatTensor(tag)).view(1,-1)
-  return tag
-
-
-def fake_generator():
-  noise = Variable(torch.FloatTensor(batch_size, noise_size)).to(device)
-  noise.data.normal_(.0, 1)
-  tag = torch.cat([fake_tag() for i in range(batch_size)], dim=0)
-  tag = Variable(tag).to(device)
-  return noise, tag
-
-
-def read_newest_model(model_dump_path):
-  for rt, dirs, files in os.walk(model_dump_path):
-    return files
 
 
 class SRGAN():
@@ -170,12 +142,12 @@ class SRGAN():
 
 
   def load_checkpoint(self, model_dir):
-    models_path = read_newest_model(model_dir)
+    models_path = utils.read_newest_model(model_dir)
     if len(models_path) == 0:
       return None, None
     models_path.sort()
     new_model_path = os.path.join(model_dump_path, models_path[-1])
-    checkpoint = torch.load(new_model_path)
+    checkpoint = torch.load(new_model_path, map_location='cuda' if torch.cuda.is_available() else 'cpu')
     return checkpoint, new_model_path
 
 
@@ -184,16 +156,6 @@ class SRGAN():
     label = Variable(torch.FloatTensor(batch_size, 1.0)).to(device)
     logging.info('Current epoch: {}. Max epoch: {}.'.format(self.epoch, max_epoch))
     while self.epoch <= max_epoch:
-      # dump checkpoint
-      torch.save({
-        'epoch': self.epoch,
-        'D': self.D.state_dict(),
-        'G': self.G.state_dict(),
-        'optimizer_D': self.optimizer_D.state_dict(),
-        'optimizer_G': self.optimizer_G.state_dict(),
-      }, '{}/checkpoint_{}.tar'.format(model_dump_path, str(self.epoch).zfill(4)))
-      logger.info('Checkpoint saved in: {}'.format('{}/checkpoint_{}.tar'.format(model_dump_path, str(self.epoch).zfill(4))))
-
       msg = {}
       adjust_learning_rate(self.optimizer_G, iteration)
       adjust_learning_rate(self.optimizer_D, iteration)
@@ -223,7 +185,7 @@ class SRGAN():
             msg['discriminator real loss'] = float(real_loss_sum)
 
         # 1.3. use fake image for discriminating
-        g_noise, fake_tag = fake_generator()
+        g_noise, fake_tag = utils.fake_generator(batch_size, noise_size, device)
         fake_feat = torch.cat([g_noise, fake_tag], dim=1)
         fake_img = self.G(fake_feat).detach()
         fake_label_p, fake_tag_p = self.D(fake_img)
@@ -261,7 +223,7 @@ class SRGAN():
         # 2. Training G
         # 2.1. generate fake image
         self.G.zero_grad()
-        g_noise, fake_tag = fake_generator()
+        g_noise, fake_tag = utils.fake_generator(batch_size, noise_size, device)
         fake_feat = torch.cat([g_noise, fake_tag], dim=1)
         fake_img = self.G(fake_feat)
         fake_label_p, fake_tag_p = self.D(fake_img)
@@ -288,23 +250,28 @@ class SRGAN():
         if iteration % verbose_T == 0:
           vutils.save_image(avatar_img.data.view(batch_size, 3, avatar_img.size(2), avatar_img.size(3)),
                             os.path.join(tmp_path, 'real_image_{}.png'.format(str(iteration).zfill(8))))
-          g_noise, fake_tag = fake_generator()
+          g_noise, fake_tag = utils.fake_generator(batch_size, noise_size, device)
           fake_feat = torch.cat([g_noise, fake_tag], dim=1)
           fake_img = self.G(fake_feat)
           vutils.save_image(fake_img.data.view(batch_size, 3, avatar_img.size(2), avatar_img.size(3)),
                             os.path.join(tmp_path, 'fake_image_{}.png'.format(str(iteration).zfill(8))))
           logger.info('Saved intermediate file in {}'.format(os.path.join(tmp_path, 'fake_image_{}.png'.format(str(iteration).zfill(8)))))
+      # dump checkpoint
+      torch.save({
+        'epoch': self.epoch,
+        'D': self.D.state_dict(),
+        'G': self.G.state_dict(),
+        'optimizer_D': self.optimizer_D.state_dict(),
+        'optimizer_G': self.optimizer_G.state_dict(),
+      }, '{}/checkpoint_{}.tar'.format(model_dump_path, str(self.epoch).zfill(4)))
+      logger.info('Checkpoint saved in: {}'.format('{}/checkpoint_{}.tar'.format(model_dump_path, str(self.epoch).zfill(4))))
       self.epoch += 1
 
 
-def main():
+if __name__ == '__main__':
   if not os.path.exists(model_dump_path):
     os.mkdir(model_dump_path)
   if not os.path.exists(tmp_path):
     os.mkdir(tmp_path)
   gan = SRGAN()
   gan.train()
-
-
-if __name__ == '__main__':
-  main()
