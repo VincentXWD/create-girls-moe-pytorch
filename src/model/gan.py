@@ -147,7 +147,10 @@ class SRGAN():
       return None, None
     models_path.sort()
     new_model_path = os.path.join(model_dump_path, models_path[-1])
-    checkpoint = torch.load(new_model_path, map_location='cuda' if torch.cuda.is_available() else 'cpu')
+    if torch.cuda.is_available():
+      checkpoint = torch.load(new_model_path)
+    else:
+      checkpoint = torch.load(new_model_path, map_location='cuda' if torch.cuda.is_available() else 'cpu')
     return checkpoint, new_model_path
 
 
