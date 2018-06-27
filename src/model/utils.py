@@ -51,8 +51,8 @@ def fake_tag():
     choice = random.randint(1, 4)
     if choice == 4:
       _tag[tag_map[feat]] = 1
-  tag = Variable(torch.FloatTensor(_tag)).view(1,-1)
-  return tag
+  _tag = Variable(torch.FloatTensor(_tag)).view(1,-1)
+  return _tag
 
 
 def fake_generator(batch_size, noise_size, device):
