@@ -22,7 +22,7 @@ import logging
 import time
 
 
-__DEBUG__ = False
+__DEBUG__ = True
 
 # have GPU or not.
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -38,7 +38,7 @@ parser.add_argument('--lr_update_cycle', type=int, default=50000, help='cycle of
 parser.add_argument('--max_epoch', type=int, default=500, help='training epoch')
 parser.add_argument('--num_workers', type=int, default=4, help='number of data loader processors')
 parser.add_argument('--noise_size', type=int, default=128, help='number of G\'s input')
-parser.add_argument('--lambda_adv', type=float, default=20.0, help='adv\'s lambda')
+parser.add_argument('--lambda_adv', type=float, default=34.0, help='adv\'s lambda')
 parser.add_argument('--lambda_gp', type=float, default=0.5, help='gp\'s lambda')
 parser.add_argument('--model_dump_path', type=str, default='../../resource/gan_models', help='model\'s save path')
 parser.add_argument('--verbose', type=bool, default=True, help='output verbose messages')

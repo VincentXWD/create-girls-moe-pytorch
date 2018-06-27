@@ -25,7 +25,7 @@ headers = {
 
 def get_html(url: str) -> str:
   """
-  Get the html file using proxy in order to access the web server
+  Get the html file using proxy in order to access the demo server
   over 'GFW' using your shadowsocks.
   :param url:
   :return: the html source code

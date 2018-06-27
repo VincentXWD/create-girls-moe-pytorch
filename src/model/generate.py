@@ -29,17 +29,25 @@ def load_checkpoint(model_dir):
   return checkpoint, new_model_path
 
 
-def generate_test(G, file_name):
-  g_noise, fake_tag = utils.fake_generator(1, 128, device)
-  fake_feat = torch.cat([g_noise, fake_tag], dim=1)
-  fake_img = G(fake_feat)
-  vutils.save_image(fake_img.data.view(1, 3, 128, 128),
+def generate(G, file_name, tags):
+  '''
+  Generate fake image.
+  :param G:
+  :param file_name:
+  :param tags:
+  :return: img's tensor and file path.
+  '''
+  g_noise = Variable(torch.FloatTensor(1, 128)).to(device).data.normal_(.0, 1)
+  g_tag = Variable(torch.FloatTensor([utils.get_one_hot(tags)])).to(device)
+  img = G(torch.cat([g_noise, g_tag], dim=1))
+  vutils.save_image(img.data.view(1, 3, 128, 128),
                     os.path.join(tmp_path, '{}.png'.format(file_name)))
-  print('Saved intermediate file in {}'.format(os.path.join(tmp_path, '{}.png'.format(file_name))))
+  print('Saved file in {}'.format(os.path.join(tmp_path, '{}.png'.format(file_name))))
+  return img.data.view(1, 3, 128, 128), os.path.join(tmp_path, '{}.png'.format(file_name))
 
 
 if __name__ == '__main__':
   G = Generator().to(device)
   checkpoint, _ = load_checkpoint(model_dump_path)
   G.load_state_dict(checkpoint['G'])
-  generate_test(G, 'test')
+  generate(G, 'test', ['short hair'])
