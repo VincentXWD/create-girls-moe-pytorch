@@ -85,7 +85,7 @@ logger.addHandler(plog)
 logger.info('Currently use {} for calculating'.format(device))
 if __DEBUG__:
   batch_size = 10
-  num_workers = 4
+  num_workers = 1
 #
 #
 ##########################################
@@ -164,6 +164,9 @@ class SRGAN():
       adjust_learning_rate(self.optimizer_D, iteration)
       for i, (avatar_tag, avatar_img) in enumerate(self.data_loader):
         iteration += 1
+        if avatar_img.shape[0] != batch_size:
+          logging.warn('Batch size not satisfied. Ignoring.')
+          continue
         if verbose:
           if iteration % verbose_T == 0:
             msg['epoch'] = int(self.epoch)
