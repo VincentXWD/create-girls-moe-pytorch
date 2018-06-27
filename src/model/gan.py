@@ -42,7 +42,7 @@ parser.add_argument('--lambda_adv', type=float, default=20.0, help='adv\'s lambd
 parser.add_argument('--lambda_gp', type=float, default=0.5, help='gp\'s lambda')
 parser.add_argument('--model_dump_path', type=str, default='../../resource/gan_models', help='model\'s save path')
 parser.add_argument('--verbose', type=bool, default=True, help='output verbose messages')
-parser.add_argument('--tmp_path', type=str, default='../../resource/training_temp/', help='path of the intermediate files during training')
+parser.add_argument('--tmp_path', type=str, default='../../resource/training_temp_1/', help='path of the intermediate files during training')
 parser.add_argument('--verbose_T', type=int, default=100, help='steps for saving intermediate file')
 parser.add_argument('--logfile', type=str, default='../../resource/training.log', help='logging path')
 
@@ -70,7 +70,7 @@ logfile = opt.logfile
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 rq = time.strftime('%Y%m%d%H%M', time.localtime(time.time()))
-log = logging.FileHandler(logfile, mode='w')
+log = logging.FileHandler(logfile, mode='w+')
 log.setLevel(logging.INFO)
 formatter = logging.Formatter("%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s")
 log.setFormatter(formatter)
