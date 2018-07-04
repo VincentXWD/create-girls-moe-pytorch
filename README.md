@@ -3,8 +3,8 @@ This repo contains a PyTorch from-scratch implementation of the paper [Towards t
 
 ### What The Paper Did
 Generating 二次元(にじげん) MOEst avatars...
-<center><img src="./img/paper_samples.png"></center>
-<center>generated avatars from the paper</center>
+<center><img src="./img/test.png"></center>
+<center>generated avatars from my pre-trained model. Some avatars seem strange. I need to add some tricks and continue training it.</center>
 
 ### Environment
 + Python 3.6
@@ -55,7 +55,7 @@ The SRResNet(modified as the paper described) are like this:
 ### Super Resolution Processing
 Coming soon.
 
-## 萌妹头像生成
+<!-- ## 萌妹头像生成
 由[@A-nony-mous](https://github.com/A-nony-mous)翻译自原文<br>
 这份repo包括了一份以PyTorch实现的论文[Towards the Automatic Anime Characters Creation with Generative Adversarial Networks](https://arxiv.org/pdf/1708.05509)
 
@@ -114,4 +114,4 @@ Coming soon.
 
 
 ### 超分辨率化
-已经在做了，进展非常顺利
+已经在做了，进展非常顺利 -->

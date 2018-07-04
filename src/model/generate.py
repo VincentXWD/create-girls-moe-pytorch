@@ -37,8 +37,10 @@ def generate(G, file_name, tags):
   :param tags:
   :return: img's tensor and file path.
   '''
-  g_noise = Variable(torch.FloatTensor(1, 128)).to(device).data.normal_(.0, 1)
-  g_tag = Variable(torch.FloatTensor([utils.get_one_hot(tags)])).to(device)
+  # g_noise = Variable(torch.FloatTensor(1, 128)).to(device).data.normal_(.0, 1)
+  # g_tag = Variable(torch.FloatTensor([utils.get_one_hot(tags)])).to(device)
+  g_noise, g_tag = utils.fake_generator(1, 128, device)
+
   img = G(torch.cat([g_noise, g_tag], dim=1))
   vutils.save_image(img.data.view(1, 3, 128, 128),
                     os.path.join(tmp_path, '{}.png'.format(file_name)))
@@ -50,4 +52,4 @@ if __name__ == '__main__':
   G = Generator().to(device)
   checkpoint, _ = load_checkpoint(model_dump_path)
   G.load_state_dict(checkpoint['G'])
-  generate(G, 'test', ['short hair'])
+  generate(G, 'test', ['white hair'])
